@@ -17,20 +17,17 @@ function RuleEngine() {
             if (token === "(") parenthesesBalance++;
             else if (token === ")") parenthesesBalance--;
 
-            // Check for invalid comparisons
             if (operators.includes(token)) {
                 if (i === 0 || i === tokens.length - 1 || operators.includes(tokens[i + 1])) {
                     return "Invalid rule: Operators are misplaced.";
                 }
             }
 
-            // Check for unbalanced parentheses
             if (parenthesesBalance < 0) return "Unmatched parentheses in the rule.";
         }
 
         if (parenthesesBalance !== 0) return "Unmatched parentheses in the rule.";
 
-        // Check for at least one operator and one operand
         const containsOperator = tokens.some(token => operators.includes(token));
         if (!containsOperator) return "Invalid rule: No operator found.";
 

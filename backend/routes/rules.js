@@ -13,62 +13,16 @@ class Node {
 
 const tokenizeRuleString = (ruleString) => {
     const tokens = ruleString
-        .replace(/\(/g, " ( ")  // Add spaces around parentheses
+        .replace(/\(/g, " ( ")  
         .replace(/\)/g, " ) ")
-        .split(" ")             // Split by spaces
-        .filter(Boolean);       // Remove empty tokens
+        .split(" ")            
+        .filter(Boolean);
     return tokens;
 };
 
 const createOperandNode = (token) => {
     return new Node("operand", token);
 };
-
-// const parseTokensToAST = (tokens) => {
-//     let index = 0;
-//     let currentOperator = null;
-
-//     // Recursively parse tokens into AST
-//     const parseExpression = () => {
-//         let leftNode = null;
-
-//         while (index < tokens.length) {
-//             let token = tokens[index];
-
-//             if (token === "(") {
-//                 // Begin nested expression, parse it recursively
-//                 index++;  // Skip "("
-//                 let nestedNode = parseExpression();
-//                 if (!leftNode) {
-//                     leftNode = nestedNode;
-//                 } else {
-//                     leftNode = new Node("operator", currentOperator, leftNode, nestedNode);
-//                 }
-//             } else if (token === ")") {
-//                 // End of nested expression
-//                 index++;  // Skip ")"
-//                 return leftNode;
-//             } else if (token === "AND" || token === "OR") {
-//                 // Handle operators
-//                 currentOperator = token;
-//                 index++;  // Skip operator
-//             } else {
-//                 // Handle operands (conditions like "age > 30")
-//                 let operandNode = createOperandNode(token);
-//                 if (!leftNode) {
-//                     leftNode = operandNode;
-//                 } else {
-//                     leftNode = new Node("operator", currentOperator, leftNode, operandNode);
-//                 }
-//                 index++;  // Move to next token
-//             }
-//         }
-
-//         return leftNode;
-//     };
-
-//     return parseExpression();
-// };
 
 const parseTokensToAST = (tokens) => {
     let index = 0;
@@ -80,7 +34,6 @@ const parseTokensToAST = (tokens) => {
             let token = tokens[index];
 
             if (token === "(") {
-                // Begin nested expression, parse it recursively
                 index++;  // Skip "("
                 let nestedNode = parseExpression();
                 if (!leftNode) {
@@ -89,11 +42,9 @@ const parseTokensToAST = (tokens) => {
                     leftNode = applyOperatorPrecedence(leftNode, nestedNode, precedenceLevel);
                 }
             } else if (token === ")") {
-                // End of nested expression
                 index++;  // Skip ")"
                 return leftNode;
             } else if (token === "AND" || token === "OR") {
-                // Handle operators with precedence
                 let operatorPrecedence = getPrecedenceLevel(token);
 
                 if (operatorPrecedence > precedenceLevel) {
@@ -104,7 +55,6 @@ const parseTokensToAST = (tokens) => {
                     return leftNode;
                 }
             } else {
-                // Handle operands (conditions like "age > 30")
                 let operandNode = createOperandNode(token);
                 if (!leftNode) {
                     leftNode = operandNode;
@@ -131,7 +81,6 @@ const getPrecedenceLevel = (operator) => {
 };
 
 const applyOperatorPrecedence = (leftNode, rightNode, precedenceLevel) => {
-    // Determine the precedence between the current nodes
     if (precedenceLevel === 2) {
         return new Node("operator", "AND", leftNode, rightNode);
     } else if (precedenceLevel === 1) {
@@ -164,32 +113,17 @@ router.post("/create", async (req, res) => {
         res.status(200).json({ message: "Rule created successfully" });
     } catch (error) {
         console.log(error)
-        res.status(500).json({ message: "Error creating rule", error });
+        res.status(500).json({ message: "Error creating rule", error: error.message });
     }
 
 });
-
-
-// const evaluateAST = (node, data) => {
-//     if (node.node_type === "operand") {
-//         const [field, operator, value] = node.value.split(" ");
-//         if (operator === ">") return data[field] > parseInt(value);
-//         if (operator === "<") return data[field] < parseInt(value);
-//         if (operator === "=") return data[field] === value.replace(/'/g, "");
-//     } else if (node.node_type === "operator") {
-//         if (node.value === "AND") return evaluateAST(node.left, data) && evaluateAST(node.right, data);
-//         if (node.value === "OR") return evaluateAST(node.left, data) || evaluateAST(node.right, data);
-//     }
-// };
 
 const evaluateAST = (node, data) => {
     if (!node) return false;
 
     if (node.node_type === "operand") {
-        // Evaluate operand node
         return evaluateCondition(node, data);
     } else if (node.node_type === "operator") {
-        // Handle AND/OR operators
         if (node.value === "AND") {
             return evaluateAST(node.left, data) && evaluateAST(node.right, data);
         }
@@ -200,11 +134,8 @@ const evaluateAST = (node, data) => {
     return false;
 };
 
-// Helper function to evaluate conditions when operator and operands are separate
 const evaluateCondition = (node, data) => {
-    // Check if the node is part of a comparison, like 'age', '>', '30'
-    if (!node.left || !node.right) {
-        // Return false for malformed nodes
+    if (!node.left && !node.right) {
         return false;
     }
 
@@ -216,21 +147,17 @@ const evaluateCondition = (node, data) => {
     const operator = operatorNode.value;  // ">", "<", "="
     let value = valueNode.value;      // "30", "Sales"
 
-    // Clean up value (remove quotes if it's a string)
     value = value.replace(/'/g, "");
 
-    // Fetch the field's value from the data object (e.g., age, department)
     let fieldValue = data[field];
 
-    // Perform comparisons based on the operator
     if (operator === ">") return parseFloat(fieldValue) > parseFloat(value);
     if (operator === "<") return parseFloat(fieldValue) < parseFloat(value);
     if (operator === "=") return fieldValue === value;
 
-    return false;  // Return false if no valid comparison
+    return false;
 };
 
-// Evaluate rule
 router.post("/evaluate", async (req, res) => {
     try {
         const { userData } = req.body;
@@ -239,7 +166,7 @@ router.post("/evaluate", async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         console.log(error)
-        res.status(500).json({ message: "Error evaluating rule", error });
+        res.status(500).json({ message: "Error evaluating rule", error: error.message });
     }
 
 });

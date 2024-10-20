@@ -12,7 +12,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use("/api/rules", ruleRoutes);
 
-// MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
