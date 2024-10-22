@@ -110,7 +110,7 @@ router.post("/create", async (req, res) => {
         const ast = parseRuleToAST(rule);
         const newRule = new Rule({ rule_ast: ast, metadata: { name: "Custom Rule" } });
         await newRule.save();
-        res.status(200).json({ message: "Rule created successfully" });
+        res.status(200).json({ message: "Rule created successfully" ,rule: newRule});
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Error creating rule", error: error.message });
